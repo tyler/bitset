@@ -30,7 +30,3 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('ext/**/*.c')
 end
-
-task :build do
-  ruby 'ext/bitset/extconf.rb'
-end
