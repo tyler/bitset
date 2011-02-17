@@ -200,4 +200,18 @@ describe Bitset do
       bs1.hamming(bs2).should == 3
     end
   end
+
+  describe :each do
+    it 'iterates over the bits in the Bitset' do
+      bs = Bitset.new(4)
+      bs.set 0, 2
+
+      i = 0
+      bs.each do |bit|
+        bit.should == bs[i]
+        i += 1
+      end
+      i.should == 4
+    end
+  end
 end

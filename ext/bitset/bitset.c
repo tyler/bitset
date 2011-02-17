@@ -250,8 +250,20 @@ static VALUE rb_bitset_hamming(VALUE self, VALUE other) {
     return INT2NUM(count);
 }
 
+static VALUE rb_bitset_each(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    int i;
+
+    for(i = 0; i < bs->len; i++) {
+        rb_yield(get_bit(bs, i) > 0 ? Qtrue : Qfalse);
+    }
+
+    return self;
+}
+
 void Init_bitset() {
     cBitset = rb_define_class("Bitset", rb_cObject);
+    rb_include_module(cBitset, rb_mEnumerable);
     rb_define_alloc_func(cBitset, rb_bitset_alloc);
     rb_define_method(cBitset, "initialize", rb_bitset_initialize, 1);
     rb_define_method(cBitset, "size", rb_bitset_size, 0);
@@ -272,4 +284,5 @@ void Init_bitset() {
     rb_define_alias(cBitset, "^", "xor");
     rb_define_alias(cBitset, "symmetric_difference", "xor");
     rb_define_method(cBitset, "hamming", rb_bitset_hamming, 1);
+    rb_define_method(cBitset, "each", rb_bitset_each, 0);
 }
