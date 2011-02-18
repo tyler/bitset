@@ -1,4 +1,4 @@
-require './bitset'
+require 'bitset'
 
 describe Bitset do
   it 'can be initialized' do
@@ -186,6 +186,17 @@ describe Bitset do
       bs3 = bs1 ^ bs2
       bs3.set?(2,6,7).should == true
       bs3.clear?(0,1,3,4,5).should == true
+    end
+  end
+
+  describe :not do
+    it "returns a new Bitset with is the not of one Bitset" do
+      bs1 = Bitset.new(8)
+      bs1.set 1, 4, 7
+
+      bs2 = bs1.not
+      bs2.set?(0, 2, 3, 5, 6).should == true
+      bs2.clear?(1, 4, 7).should == true
     end
   end
 

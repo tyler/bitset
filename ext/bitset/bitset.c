@@ -234,6 +234,22 @@ static VALUE rb_bitset_xor(VALUE self, VALUE other) {
     return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
 }
 
+static VALUE rb_bitset_not(VALUE self) {
+    Bitset * bs = get_bitset(self);
+
+    Bitset * new_bs = bitset_new();
+    bitset_setup(new_bs, bs->len);
+
+    int max = ((bs->len-1) >> 6) + 1;
+    int i;
+    for(i = 0; i < max; i++) {
+        uint64_t segment = bs->data[i];
+        new_bs->data[i] = ~segment;
+    }
+
+    return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
+}
+
 static VALUE rb_bitset_hamming(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
@@ -283,6 +299,7 @@ void Init_bitset() {
     rb_define_method(cBitset, "xor", rb_bitset_xor, 1);
     rb_define_alias(cBitset, "^", "xor");
     rb_define_alias(cBitset, "symmetric_difference", "xor");
+    rb_define_method(cBitset, "not", rb_bitset_not, 0);
     rb_define_method(cBitset, "hamming", rb_bitset_hamming, 1);
     rb_define_method(cBitset, "each", rb_bitset_each, 0);
 }
