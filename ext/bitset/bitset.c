@@ -250,6 +250,36 @@ static VALUE rb_bitset_not(VALUE self) {
     return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
 }
 
+static VALUE rb_bitset_to_s(VALUE self) {
+    Bitset * bs = get_bitset(self);
+
+    int i;
+    char * data = malloc(bs->len + 1);
+    for(i = 0; i < bs->len; i++) {
+        data[i] = get_bit(bs, i)  ? '1' : '0';
+    }
+    data[bs->len] = 0;
+
+    return rb_str_new2(data);
+}
+
+static VALUE rb_bitset_from_s(VALUE self, VALUE s) {
+    int length = RSTRING(s)->len;
+    char* data = StringValuePtr(s);
+
+    Bitset * new_bs = bitset_new();
+    bitset_setup(new_bs, length);
+
+    int i;
+    for (i = 0; i < length; i++) {
+        if (data[i] == '1') {
+            set_bit(new_bs, i);
+        }
+    }
+
+    return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
+}
+
 static VALUE rb_bitset_hamming(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
@@ -302,4 +332,6 @@ void Init_bitset() {
     rb_define_method(cBitset, "not", rb_bitset_not, 0);
     rb_define_method(cBitset, "hamming", rb_bitset_hamming, 1);
     rb_define_method(cBitset, "each", rb_bitset_each, 0);
+    rb_define_method(cBitset, "to_s", rb_bitset_to_s, 0);
+    rb_define_singleton_method(cBitset, "from_s", rb_bitset_from_s, 1);
 }

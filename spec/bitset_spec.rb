@@ -225,4 +225,19 @@ describe Bitset do
       i.should == 4
     end
   end
+
+  describe :to_s do
+    it 'correctly prints out a binary string' do
+      bs = Bitset.new(4)
+      bs.set 0, 2
+      bs.to_s.should == "1010"
+    end
+  end
+
+  describe :from_s do
+    it 'correctly creates a bitmap from a binary string' do
+      bs = Bitset.from_s("10101")
+      bs.set?(0, 2, 4).should == true
+    end
+  end
 end
