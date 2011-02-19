@@ -264,7 +264,7 @@ static VALUE rb_bitset_to_s(VALUE self) {
 }
 
 static VALUE rb_bitset_from_s(VALUE self, VALUE s) {
-    int length = RSTRING(s)->len;
+    int length = RSTRING_LEN(s);
     char* data = StringValuePtr(s);
 
     Bitset * new_bs = bitset_new();
