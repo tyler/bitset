@@ -330,7 +330,7 @@ void Init_bitset() {
     rb_define_alias(cBitset, "^", "xor");
     rb_define_alias(cBitset, "symmetric_difference", "xor");
     rb_define_method(cBitset, "not", rb_bitset_not, 0);
-    rb_define_alias(cBitset, "!", "not");
+    rb_define_alias(cBitset, "~", "not");
     rb_define_method(cBitset, "hamming", rb_bitset_hamming, 1);
     rb_define_method(cBitset, "each", rb_bitset_each, 0);
     rb_define_method(cBitset, "to_s", rb_bitset_to_s, 0);
