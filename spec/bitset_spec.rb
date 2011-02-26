@@ -104,6 +104,12 @@ describe Bitset do
       bs.clear?(0,2,3,6).should == true
     end
 
+    it 'returns works with the full range of 64 bit values'  do
+      bs = Bitset.new(68)
+      bs.set 0, 2, 66
+      bs.clear?(32, 33, 34).should == true
+    end
+
     it 'returns False if not all bits indexed are clear' do
       bs = Bitset.new(8)
       bs.set 1, 4
@@ -231,6 +237,10 @@ describe Bitset do
       bs = Bitset.new(4)
       bs.set 0, 2
       bs.to_s.should == "1010"
+
+      bs = Bitset.new(68)
+      bs.set 0, 2, 66
+      bs.to_s.should == "101" + ("0" * 63) + "10"
     end
   end
 

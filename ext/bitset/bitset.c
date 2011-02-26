@@ -55,8 +55,8 @@ void raise_index_error() {
     rb_raise(rb_eIndexError, "Index out of bounds");
 }
 
-#define _bit_segment(bit) ((bit) >> 6)
-#define _bit_mask(bit) (1 << ((bit) & 0x3f))
+#define _bit_segment(bit) ((bit) >> 6UL)
+#define _bit_mask(bit) (1UL << ((bit) & 0x3f))
 
 void validate_index(Bitset * bs, int idx) {
     if(idx < 0 || idx >= bs->len)
