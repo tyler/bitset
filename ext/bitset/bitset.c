@@ -56,7 +56,7 @@ void raise_index_error() {
 }
 
 #define _bit_segment(bit) ((bit) >> 6UL)
-#define _bit_mask(bit) (1UL << ((bit) & 0x3f))
+#define _bit_mask(bit) (((uint64_t) 1) << ((bit) & 0x3f))
 
 void validate_index(Bitset * bs, int idx) {
     if(idx < 0 || idx >= bs->len)
