@@ -250,4 +250,15 @@ describe Bitset do
       bs.set?(0, 2, 4).should == true
     end
   end
+
+  describe :marshalling do
+    it 'can marshal and load' do
+      bs = Bitset.new(68)
+      bs.set 1, 65
+
+      serialized = Marshal.load(Marshal.dump(bs))
+      serialized.set?(1, 65).should == true
+      serialized.cardinality.should == 2
+    end
+  end
 end

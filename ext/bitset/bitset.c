@@ -307,6 +307,42 @@ static VALUE rb_bitset_each(VALUE self) {
     return self;
 }
 
+static VALUE rb_bitset_marshall_dump(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    VALUE hash = rb_hash_new();
+    VALUE data = rb_ary_new();
+
+    int words = (((bs->len-1) >> 6) + 1);
+
+    int i;
+
+    rb_hash_aset(hash, ID2SYM(rb_intern("len")), UINT2NUM(bs->len));
+    rb_hash_aset(hash, ID2SYM(rb_intern("data")), data);
+
+    for(i = 0; i < words; i++) {
+        rb_ary_push(data, UINT2NUM(bs->data[i]));
+    }
+
+    return hash;
+}
+
+static VALUE rb_bitset_marshall_load(VALUE self, VALUE hash) {
+    Bitset * bs = get_bitset(self);
+    int len = NUM2INT(rb_hash_aref(hash, ID2SYM(rb_intern("len"))));
+
+    VALUE data = rb_hash_aref(hash, ID2SYM(rb_intern("data")));
+
+    bitset_setup(bs, len);
+
+    int words = (((bs->len-1) >> 6) + 1);
+    int i;
+    for (i = 0; i < words; i++) {
+        bs->data[i] = NUM2UINT(rb_ary_entry(data, i));
+    }
+
+    return Qnil;
+}
+
 void Init_bitset() {
     cBitset = rb_define_class("Bitset", rb_cObject);
     rb_include_module(cBitset, rb_mEnumerable);
@@ -335,4 +371,6 @@ void Init_bitset() {
     rb_define_method(cBitset, "each", rb_bitset_each, 0);
     rb_define_method(cBitset, "to_s", rb_bitset_to_s, 0);
     rb_define_singleton_method(cBitset, "from_s", rb_bitset_from_s, 1);
+    rb_define_method(cBitset, "marshal_dump", rb_bitset_marshall_dump, 0);
+    rb_define_method(cBitset, "marshal_load", rb_bitset_marshall_load, 1);
 }
