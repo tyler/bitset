@@ -11,6 +11,9 @@ typedef struct {
     uint64_t * data;
 } Bitset;
 
+#define BYTES(_bs) (((_bs->len-1) >> 3) + 1)
+#define INTS(_bs) (((_bs->len-1) >> 6) + 1)
+
 Bitset * bitset_new() {
     return (Bitset *) malloc(sizeof(Bitset));
 }
@@ -310,18 +313,10 @@ static VALUE rb_bitset_each(VALUE self) {
 static VALUE rb_bitset_marshall_dump(VALUE self) {
     Bitset * bs = get_bitset(self);
     VALUE hash = rb_hash_new();
-    VALUE data = rb_ary_new();
-
-    int words = (((bs->len-1) >> 6) + 1);
-
-    int i;
+    VALUE data = rb_str_new(bs->data, BYTES(bs));
 
     rb_hash_aset(hash, ID2SYM(rb_intern("len")), UINT2NUM(bs->len));
     rb_hash_aset(hash, ID2SYM(rb_intern("data")), data);
-
-    for(i = 0; i < words; i++) {
-        rb_ary_push(data, UINT2NUM(bs->data[i]));
-    }
 
     return hash;
 }
@@ -334,11 +329,8 @@ static VALUE rb_bitset_marshall_load(VALUE self, VALUE hash) {
 
     bitset_setup(bs, len);
 
-    int words = (((bs->len-1) >> 6) + 1);
-    int i;
-    for (i = 0; i < words; i++) {
-        bs->data[i] = NUM2UINT(rb_ary_entry(data, i));
-    }
+    bs->data = (uint64_t *) calloc(INTS(bs), sizeof(uint64_t));
+    memcpy(bs->data, RSTRING_PTR(data), BYTES(bs));
 
     return Qnil;
 }
