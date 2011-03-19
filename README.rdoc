@@ -1,3 +1,0 @@
-= Bitset
-
-A fast Bitset implementation for Ruby. Available as the 'bitset' gem.
