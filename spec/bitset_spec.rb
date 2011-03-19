@@ -130,6 +130,11 @@ describe Bitset do
 
       bs[2] = true
       bs.cardinality.should == 3
+
+      bs = Bitset.new(64)
+      bs[0] = 1
+
+      bs.cardinality.should == 1
     end
 
     it '... even for large numbers of bits' do

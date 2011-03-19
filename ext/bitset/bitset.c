@@ -158,7 +158,7 @@ static VALUE rb_bitset_cardinality(VALUE self) {
     int count = 0;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
-        if(i+1 == max)
+        if(i+1 == max && (bs->len & 0x3F))
             segment &= ((((uint64_t) 1) << (bs->len & 0x3F)) - 1);
         count += __builtin_popcountll(segment);
     }
