@@ -269,4 +269,13 @@ describe Bitset do
       serialized.cardinality.should == 2
     end
   end
+
+  describe :to_a do
+    it "can convert to an array of set positions" do
+      bs = Bitset.new(68)
+      bs.set 1, 64, 65
+
+      bs.to_a.should == [1, 64, 65]
+    end
+  end
 end

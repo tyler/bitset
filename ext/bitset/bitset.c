@@ -335,6 +335,20 @@ static VALUE rb_bitset_marshall_load(VALUE self, VALUE hash) {
     return Qnil;
 }
 
+static VALUE rb_bitset_to_a(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    int i;
+
+    VALUE array = rb_ary_new2(bs->len / 2);
+    for(i = 0; i < bs->len; i++) {
+        if (get_bit(bs, i) > 0) {
+            rb_ary_push(array, INT2NUM(i));
+        }
+    }
+
+    return array;
+}
+
 void Init_bitset() {
     cBitset = rb_define_class("Bitset", rb_cObject);
     rb_include_module(cBitset, rb_mEnumerable);
@@ -365,4 +379,5 @@ void Init_bitset() {
     rb_define_singleton_method(cBitset, "from_s", rb_bitset_from_s, 1);
     rb_define_method(cBitset, "marshal_dump", rb_bitset_marshall_dump, 0);
     rb_define_method(cBitset, "marshal_load", rb_bitset_marshall_load, 1);
+    rb_define_method(cBitset, "to_a", rb_bitset_to_a, 0);
 }
