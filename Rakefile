@@ -17,7 +17,7 @@ Jeweler::Tasks.new do |gem|
   gem.summary = 'Bitset implementation.'
   gem.description = 'A fast C-based Bitset. It supports the standard set operations as well as operations you may expect on bit arrays. (popcount, for instance)'
   gem.email = "tbmcmullen@gmail.com"
-  gem.authors = ["Tyler McMullen"]
+  gem.authors = ["Tyler McMullen", "Brendon McLean"]
 end
 Jeweler::RubygemsDotOrgTasks.new
 

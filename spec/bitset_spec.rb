@@ -278,4 +278,13 @@ describe Bitset do
       bs.to_a.should == [1, 64, 65]
     end
   end
+
+  describe :to_binary_array do
+    it "can convert to an array of 1s and 0s" do
+      bs = Bitset.new(68)
+      bs.set 1, 64, 65
+
+      bs.to_binary_array.values_at(1, 64, 65, 66).should == [1, 1, 1, 0]
+    end
+  end
 end

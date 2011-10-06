@@ -349,6 +349,18 @@ static VALUE rb_bitset_to_a(VALUE self) {
     return array;
 }
 
+static VALUE rb_bitset_to_binary_array(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    int i;
+
+    VALUE array = rb_ary_new2(bs->len / 2);
+    for(i = 0; i < bs->len; i++) {
+        rb_ary_push(array, INT2NUM(get_bit(bs, i) > 0 ? 1 : 0));
+    }
+
+    return array;
+}
+
 void Init_bitset() {
     cBitset = rb_define_class("Bitset", rb_cObject);
     rb_include_module(cBitset, rb_mEnumerable);
@@ -380,4 +392,5 @@ void Init_bitset() {
     rb_define_method(cBitset, "marshal_dump", rb_bitset_marshall_dump, 0);
     rb_define_method(cBitset, "marshal_load", rb_bitset_marshall_load, 1);
     rb_define_method(cBitset, "to_a", rb_bitset_to_a, 0);
+    rb_define_method(cBitset, "to_binary_array", rb_bitset_to_binary_array, 0);
 }

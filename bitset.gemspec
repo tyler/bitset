@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{bitset}
-  s.version = "0.1.2"
+  s.version = "0.1.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Tyler McMullen"]
-  s.date = %q{2011-05-07}
+  s.authors = ["Tyler McMullen", "Brendon McLean"]
+  s.date = %q{2011-10-06}
   s.description = %q{A fast C-based Bitset. It supports the standard set operations as well as operations you may expect on bit arrays. (popcount, for instance)}
   s.email = %q{tbmcmullen@gmail.com}
   s.extensions = ["ext/bitset/extconf.rb"]
