@@ -13,6 +13,7 @@ typedef struct {
 
 #define BYTES(_bs) (((_bs->len-1) >> 3) + 1)
 #define INTS(_bs) (((_bs->len-1) >> 6) + 1)
+#define MIN(a, b) (a < b ? a : b)
 
 Bitset * bitset_new() {
     return (Bitset *) malloc(sizeof(Bitset));
@@ -170,9 +171,12 @@ static VALUE rb_bitset_intersect(VALUE self, VALUE other) {
     Bitset * other_bs = get_bitset(other);
 
     Bitset * new_bs = bitset_new();
-    bitset_setup(new_bs, bs->len);
+    bitset_setup(new_bs, MIN(bs->len, other_bs->len));
 
     int max = ((bs->len-1) >> 6) + 1;
+    int other_max = ((other_bs->len-1) >> 6) + 1;
+    max = MIN(max, other_max);
+
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -188,9 +192,12 @@ static VALUE rb_bitset_union(VALUE self, VALUE other) {
     Bitset * other_bs = get_bitset(other);
 
     Bitset * new_bs = bitset_new();
-    bitset_setup(new_bs, bs->len);
+    bitset_setup(new_bs, MIN(bs->len, other_bs->len));
 
     int max = ((bs->len-1) >> 6) + 1;
+    int other_max = ((other_bs->len-1) >> 6) + 1;
+    max = MIN(max, other_max);
+
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -206,9 +213,12 @@ static VALUE rb_bitset_difference(VALUE self, VALUE other) {
     Bitset * other_bs = get_bitset(other);
 
     Bitset * new_bs = bitset_new();
-    bitset_setup(new_bs, bs->len);
+    bitset_setup(new_bs, MIN(bs->len, other_bs->len));
 
     int max = ((bs->len-1) >> 6) + 1;
+    int other_max = ((other_bs->len-1) >> 6) + 1;
+    max = MIN(max, other_max);
+
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -224,9 +234,12 @@ static VALUE rb_bitset_xor(VALUE self, VALUE other) {
     Bitset * other_bs = get_bitset(other);
 
     Bitset * new_bs = bitset_new();
-    bitset_setup(new_bs, bs->len);
+    bitset_setup(new_bs, MIN(bs->len, other_bs->len));
 
     int max = ((bs->len-1) >> 6) + 1;
+    int other_max = ((other_bs->len-1) >> 6) + 1;
+    max = MIN(max, other_max);
+
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -288,6 +301,9 @@ static VALUE rb_bitset_hamming(VALUE self, VALUE other) {
     Bitset * other_bs = get_bitset(other);
 
     int max = ((bs->len-1) >> 6) + 1;
+    int other_max = ((other_bs->len-1) >> 6) + 1;
+    max = MIN(max, other_max);
+
     int count = 0;
     int i;
     for(i = 0; i < max; i++) {
