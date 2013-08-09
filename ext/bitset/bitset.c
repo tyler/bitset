@@ -58,8 +58,10 @@ void raise_index_error() {
     rb_raise(rb_eIndexError, "Index out of bounds");
 }
 
+#define _bit_no(bit) ((bit) & 0x3f)
 #define _bit_segment(bit) ((bit) >> 6UL)
-#define _bit_mask(bit) (((uint64_t) 1) << ((bit) & 0x3f))
+#define _bit_mask(bit) (((uint64_t) 1) << _bit_no(bit))
+#define _seg_no_to_bit_no(seg_no) ((seg_no) << 6)
 
 void validate_index(Bitset * bs, int idx) {
     if(idx < 0 || idx >= bs->len)
@@ -335,6 +337,71 @@ static VALUE rb_bitset_marshall_load(VALUE self, VALUE hash) {
     return Qnil;
 }
 
+static VALUE rb_bitset_dup(VALUE self) {
+    Bitset * bs = get_bitset(self);
+
+    Bitset * new_bs = bitset_new();
+    bitset_setup(new_bs, bs->len);
+
+    int max = ((bs->len-1) >> 6) + 1;
+    memcpy(new_bs->data, bs->data, max * sizeof(bs->data[0]));
+    return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
+}
+
+/* Yield the bit numbers of each set bit in sequence to a block. If
+   there is no block, return an array of those numbers. */
+static VALUE rb_bitset_each_set(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    int seg_no;
+    int max = ((bs->len-1) >> 6) + 1;
+    int idx = 0;
+    uint64_t* seg_ptr = bs->data;
+    int block_p = rb_block_given_p();
+    VALUE ary = Qnil;
+
+    if (!block_p) {
+       ary = rb_ary_new();
+    }
+
+    for (seg_no = 0; seg_no < max; ++seg_no, ++seg_ptr) {
+       uint64_t segment = *seg_ptr;
+       int bit_position = 0;
+       while (segment) {
+          VALUE v;
+
+          if (!(segment & 1)) {
+             int shift = __builtin_ctzll(segment);
+             bit_position += shift;
+             segment >>= shift;
+          }
+          v = INT2NUM(_seg_no_to_bit_no(seg_no) + bit_position);
+          if (block_p) {
+             rb_yield(v);
+          } else {
+             rb_ary_push(ary, v);
+          }
+          ++bit_position;
+          segment >>= 1;
+       }
+    }
+
+    return block_p ? self : ary;
+}
+
+static VALUE rb_bitset_empty_p(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    int seg_no;
+    int max = ((bs->len-1) >> 6) + 1;
+    uint64_t* seg_ptr = bs->data;
+
+    for (seg_no = 0; seg_no < max; ++seg_no, ++seg_ptr) {
+       if (*seg_ptr) {
+          return Qfalse;
+       }
+    }
+    return Qtrue;
+}
+
 void Init_bitset() {
     cBitset = rb_define_class("Bitset", rb_cObject);
     rb_include_module(cBitset, rb_mEnumerable);
@@ -365,4 +432,7 @@ void Init_bitset() {
     rb_define_singleton_method(cBitset, "from_s", rb_bitset_from_s, 1);
     rb_define_method(cBitset, "marshal_dump", rb_bitset_marshall_dump, 0);
     rb_define_method(cBitset, "marshal_load", rb_bitset_marshall_load, 1);
+    rb_define_method(cBitset, "dup", rb_bitset_dup, 0);
+    rb_define_method(cBitset, "each_set", rb_bitset_each_set, 0);
+    rb_define_method(cBitset, "empty?", rb_bitset_empty_p, 0);
 }
