@@ -82,6 +82,35 @@ support basic set and bitwise operations. So, let's look at a few of those.
     >> a.cardinality
     => 4
 
+    # Tell whether all of the given bit numbers are set
+    >> a.set? 6
+    => true
+
+    # Tell whether all of the given bit numbers are clear
+    >> a.clear? 1,3,5
+    => false
+
+    # Tell whether all bits are clear
+    >> a.empty?
+    => false
+
+    # Pass all bits to the block
+    >> b.each { |v| puts v }
+    => false
+       true
+       false
+       ...
+
+    # Pass the positions of all set bits to the block
+    >> b.each_set { |bit| puts bit }
+    => 1
+       3
+       5
+       7
+
+    # Return an array of the positions of all set bits
+    >> b.each_set
+    => [1, 3, 5, 7]
 
 Contributing
 ------------
