@@ -62,37 +62,27 @@ void raise_index_error() {
 #define _bit_segment(bit) ((bit) >> 6UL)
 #define _bit_mask(bit) (((uint64_t) 1) << _bit_no(bit))
 #define _seg_no_to_bit_no(seg_no) ((seg_no) << 6)
+#define _get_bit(bs, idx) ((bs)->data[_bit_segment(idx)] & _bit_mask(idx))
+#define _set_bit(bs, idx) ((bs)->data[_bit_segment(idx)] |= _bit_mask(idx))
+#define _clear_bit(bs, idx) ((bs)->data[_bit_segment(idx)] &= ~_bit_mask(idx))
 
-void validate_index(Bitset * bs, int idx) {
+static void validate_index(Bitset * bs, int idx) {
     if(idx < 0 || idx >= bs->len)
         raise_index_error();
 }
 
-uint64_t get_bit(Bitset * bs, int idx) {
-    uint64_t segment = bs->data[_bit_segment(idx)];
-    return segment & _bit_mask(idx);
-}
-
-void set_bit(Bitset * bs, int idx) {
-    bs->data[_bit_segment(idx)] |= _bit_mask(idx);
-}
-
-void clear_bit(Bitset * bs, int idx) {
-    bs->data[_bit_segment(idx)] &= ~_bit_mask(idx);
-}
-
 void assign_bit(Bitset * bs, int idx, VALUE value) {
     if(NIL_P(value) || value == Qfalse)
-        clear_bit(bs, idx);
+        _clear_bit(bs, idx);
     else
-        set_bit(bs, idx);
+        _set_bit(bs, idx);
 }
 
 static VALUE rb_bitset_aref(VALUE self, VALUE index) {
     Bitset * bs = get_bitset(self);
     int idx = NUM2INT(index);
     validate_index(bs, idx);
-    return get_bit(bs, idx) > 0 ? Qtrue : Qfalse;
+    return _get_bit(bs, idx) > 0 ? Qtrue : Qfalse;
 }
 
 static VALUE rb_bitset_aset(VALUE self, VALUE index, VALUE value) {
@@ -110,7 +100,7 @@ static VALUE rb_bitset_set(int argc, VALUE * argv, VALUE self) {
         VALUE index = argv[i];
         int idx = NUM2INT(index);
         validate_index(bs, idx);
-        set_bit(bs, idx);
+        _set_bit(bs, idx);
     }
     return Qtrue;
 }
@@ -122,7 +112,7 @@ static VALUE rb_bitset_clear(int argc, VALUE * argv, VALUE self) {
         VALUE index = argv[i];
         int idx = NUM2INT(index);
         validate_index(bs, idx);
-        clear_bit(bs, idx);
+        _clear_bit(bs, idx);
     }
     return Qtrue;
 }
@@ -134,7 +124,7 @@ static VALUE rb_bitset_clear_p(int argc, VALUE * argv, VALUE self) {
         VALUE index = argv[i];
         int idx = NUM2INT(index);
         validate_index(bs, idx);
-        if(get_bit(bs, idx) > 0)
+        if(_get_bit(bs, idx) > 0)
             return Qfalse;
     }
     return Qtrue;
@@ -147,7 +137,7 @@ static VALUE rb_bitset_set_p(int argc, VALUE * argv, VALUE self) {
         VALUE index = argv[i];
         int idx = NUM2INT(index);
         validate_index(bs, idx);
-        if(get_bit(bs, idx) == 0)
+        if(_get_bit(bs, idx) == 0)
             return Qfalse;
     }
     return Qtrue;
@@ -261,7 +251,7 @@ static VALUE rb_bitset_to_s(VALUE self) {
     int i;
     char * data = malloc(bs->len + 1);
     for(i = 0; i < bs->len; i++) {
-        data[i] = get_bit(bs, i)  ? '1' : '0';
+        data[i] = _get_bit(bs, i)  ? '1' : '0';
     }
     data[bs->len] = 0;
 
@@ -278,7 +268,7 @@ static VALUE rb_bitset_from_s(VALUE self, VALUE s) {
     int i;
     for (i = 0; i < length; i++) {
         if (data[i] == '1') {
-            set_bit(new_bs, i);
+            _set_bit(new_bs, i);
         }
     }
 
@@ -306,7 +296,7 @@ static VALUE rb_bitset_each(VALUE self) {
     int i;
 
     for(i = 0; i < bs->len; i++) {
-        rb_yield(get_bit(bs, i) > 0 ? Qtrue : Qfalse);
+        rb_yield(_get_bit(bs, i) ? Qtrue : Qfalse);
     }
 
     return self;
@@ -354,7 +344,6 @@ static VALUE rb_bitset_each_set(VALUE self) {
     Bitset * bs = get_bitset(self);
     int seg_no;
     int max = ((bs->len-1) >> 6) + 1;
-    int idx = 0;
     uint64_t* seg_ptr = bs->data;
     int block_p = rb_block_given_p();
     VALUE ary = Qnil;
@@ -402,6 +391,57 @@ static VALUE rb_bitset_empty_p(VALUE self) {
     return Qtrue;
 }
 
+static VALUE rb_bitset_select_bits(VALUE self, VALUE index_array) {
+    int i;
+    Bitset * bs = get_bitset(self);
+    struct RArray *arr = RARRAY(index_array);
+    int blen = bs->len;
+    int alen = RARRAY_LEN(index_array);
+    VALUE *ptr = RARRAY_PTR(index_array);
+    Bitset * new_bs = bitset_new();
+    bitset_setup(new_bs, alen);
+    for (i = 0; i < alen; ++i) {
+       int idx = NUM2INT(ptr[i]);
+       if (idx >= 0 && idx < blen && _get_bit(bs, idx)) {
+          _set_bit(new_bs, i);
+       }
+    }
+
+    return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
+}
+
+/** This could run a bit faster if you worked at it. */
+static VALUE rb_bitset_reverse(VALUE self, VALUE index_array) {
+    int i;
+    Bitset * bs = get_bitset(self);
+    int len = bs->len;
+    Bitset * new_bs = bitset_new();
+    bitset_setup(new_bs, len);
+    for (i = 0; i < len; ++i) {
+       if (_get_bit(bs, i)) {
+          _set_bit(new_bs, len - i - 1);
+       }
+    }
+
+    return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
+}
+
+static VALUE rb_bitset_equal(VALUE self, VALUE other) {
+    int i;
+    Bitset * bs = get_bitset(self);
+    Bitset * other_bs = get_bitset(other);
+
+    if (bs->len != other_bs->len)
+       return Qfalse;
+    int max = ((bs->len-1) >> 6) + 1;
+    for(i = 0; i < max; i++) {
+       if (bs->data[i] != other_bs->data[i]) {
+          return Qfalse;
+       }
+    }
+    return Qtrue;
+}
+
 void Init_bitset() {
     cBitset = rb_define_class("Bitset", rb_cObject);
     rb_include_module(cBitset, rb_mEnumerable);
@@ -435,4 +475,7 @@ void Init_bitset() {
     rb_define_method(cBitset, "dup", rb_bitset_dup, 0);
     rb_define_method(cBitset, "each_set", rb_bitset_each_set, 0);
     rb_define_method(cBitset, "empty?", rb_bitset_empty_p, 0);
+    rb_define_method(cBitset, "select_bits", rb_bitset_select_bits, 1);
+    rb_define_method(cBitset, "reverse", rb_bitset_reverse, 0);
+    rb_define_method(cBitset, "==", rb_bitset_equal, 1);
 }

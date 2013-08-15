@@ -81,10 +81,17 @@ support basic set and bitwise operations. So, let's look at a few of those.
     
     >> a.cardinality
     => 4
+    
+    >> a.reverse
+    => 11110000
 
     # Tell whether all of the given bit numbers are set
     >> a.set? 6
     => true
+
+    # Return a new Bitset composed of bits #1, #3, #5, #4, and #1 again
+    >> a.select_bits [1,3,5,4,1]
+    => 00110
 
     # Tell whether all of the given bit numbers are clear
     >> a.clear? 1,3,5
