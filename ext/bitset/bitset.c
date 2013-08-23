@@ -338,15 +338,20 @@ static VALUE rb_bitset_marshall_load(VALUE self, VALUE hash) {
 static VALUE rb_bitset_to_a(VALUE self) {
     Bitset * bs = get_bitset(self);
     int i;
+    int j = 0;
 
-    VALUE array = rb_ary_new2(bs->len / 2);
+    VALUE * array = ALLOC_N(VALUE, bs->len);
     for(i = 0; i < bs->len; i++) {
         if (get_bit(bs, i) > 0) {
-            rb_ary_push(array, INT2NUM(i));
+            array[j++] = INT2FIX(i);
         }
     }
 
-    return array;
+    VALUE ruby_array = rb_ary_new4(j, array);
+
+    xfree(array);
+
+    return ruby_array;
 }
 
 static VALUE rb_bitset_to_binary_array(VALUE self) {
