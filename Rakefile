@@ -1,32 +1,10 @@
-require 'rake'
-require 'rubygems'
-
+require "bundler/gem_tasks"
 require 'rspec/core/rake_task'
-RSpec::Core::RakeTask.new(:spec) do |t|
-  t.rspec_opts = ["--color"]
-  t.fail_on_error = false
-end
 
 task :default => :spec
 
-require 'jeweler'
-Jeweler::Tasks.new do |gem|
-  gem.name = "bitset"
-  gem.homepage = "http://github.com/tyler/bitset"
-  gem.license = "MIT"
-  gem.summary = 'Bitset implementation.'
-  gem.description = 'A fast C-based Bitset. It supports the standard set operations as well as operations you may expect on bit arrays. (popcount, for instance)'
-  gem.email = "tbmcmullen@gmail.com"
-  gem.authors = ["Tyler McMullen", "Brendon McLean"]
-end
-Jeweler::RubygemsDotOrgTasks.new
-
-require 'rake/rdoctask'
-Rake::RDocTask.new do |rdoc|
-  version = File.exist?('VERSION') ? File.read('VERSION') : ""
-
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "bitset #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('ext/**/*.c')
+desc "Run specs"
+RSpec::Core::RakeTask.new do |t|
+  t.pattern = "./spec/**/*_spec.rb" # don't need this, it's default.
+  # Put spec opts in a file named .rspec in root
 end

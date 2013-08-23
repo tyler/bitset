@@ -17,32 +17,16 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "README.markdown"
   ]
-  s.files = [
-    "LICENSE.txt",
-    "README.markdown",
-    "Rakefile",
-    "VERSION",
-    "bitset.gemspec",
-    "ext/bitset/bitset.c",
-    "ext/bitset/extconf.rb",
-    "spec/bitset_spec.rb"
-  ]
-  s.homepage = %q{http://github.com/tyler/bitset}
+  s.files = `git ls-files`.split($/)
+  s.test_files = s.files.grep(%r{^(test|spec|features)/})
+  s.homepage = %q{http://github.com/brendon9x/bitset}
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.6.2}
   s.summary = %q{Bitset implementation.}
-  s.test_files = [
-    "spec/bitset_spec.rb"
-  ]
 
-  if s.respond_to? :specification_version then
-    s.specification_version = 3
-
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-    else
-    end
-  else
-  end
+  s.add_development_dependency "rspec", "~> 2.0"
+  s.add_development_dependency "rake"
+  s.add_development_dependency "debugger"
 end
 
