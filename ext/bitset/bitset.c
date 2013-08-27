@@ -11,8 +11,10 @@ typedef struct {
     uint64_t * data;
 } Bitset;
 
-#define BYTES(_bs) (((_bs->len-1) >> 3) + 1)
-#define INTS(_bs) (((_bs->len-1) >> 6) + 1)
+// Avoid using (len-1), just in case len == 0.
+#define BYTES(_bs) (((_bs)->len+7) >> 3)
+#define INTS(_bs) (((_bs)->len+63) >> 6)
+ // 2^6=64
 
 Bitset * bitset_new() {
     return (Bitset *) malloc(sizeof(Bitset));
@@ -20,7 +22,7 @@ Bitset * bitset_new() {
 
 void bitset_setup(Bitset * bs, int len) {
     bs->len = len;
-    bs->data = (uint64_t *) calloc((((bs->len-1) >> 6) + 1), sizeof(uint64_t)); // 2^6=64
+    bs->data = (uint64_t *) calloc(INTS(bs), sizeof(uint64_t));
 }
 
 void bitset_free(Bitset * bs) {
@@ -59,7 +61,7 @@ void raise_index_error() {
 }
 
 #define _bit_no(bit) ((bit) & 0x3f)
-#define _bit_segment(bit) ((bit) >> 6UL)
+#define _bit_segment(bit) ((bit) >> 6)
 #define _bit_mask(bit) (((uint64_t) 1) << _bit_no(bit))
 #define _seg_no_to_bit_no(seg_no) ((seg_no) << 6)
 #define _get_bit(bs, idx) ((bs)->data[_bit_segment(idx)] & _bit_mask(idx))
@@ -146,7 +148,7 @@ static VALUE rb_bitset_set_p(int argc, VALUE * argv, VALUE self) {
 static VALUE rb_bitset_cardinality(VALUE self) {
     Bitset * bs = get_bitset(self);
     int i;
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     int count = 0;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -164,7 +166,7 @@ static VALUE rb_bitset_intersect(VALUE self, VALUE other) {
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
 
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -182,7 +184,7 @@ static VALUE rb_bitset_union(VALUE self, VALUE other) {
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
 
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -200,7 +202,7 @@ static VALUE rb_bitset_difference(VALUE self, VALUE other) {
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
 
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -218,7 +220,7 @@ static VALUE rb_bitset_xor(VALUE self, VALUE other) {
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
 
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -235,7 +237,7 @@ static VALUE rb_bitset_not(VALUE self) {
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
 
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
@@ -279,7 +281,7 @@ static VALUE rb_bitset_hamming(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
 
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     int count = 0;
     int i;
     for(i = 0; i < max; i++) {
@@ -333,7 +335,7 @@ static VALUE rb_bitset_dup(VALUE self) {
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
 
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     memcpy(new_bs->data, bs->data, max * sizeof(bs->data[0]));
     return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
 }
@@ -343,7 +345,7 @@ static VALUE rb_bitset_dup(VALUE self) {
 static VALUE rb_bitset_each_set(VALUE self) {
     Bitset * bs = get_bitset(self);
     int seg_no;
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     uint64_t* seg_ptr = bs->data;
     int block_p = rb_block_given_p();
     VALUE ary = Qnil;
@@ -380,7 +382,7 @@ static VALUE rb_bitset_each_set(VALUE self) {
 static VALUE rb_bitset_empty_p(VALUE self) {
     Bitset * bs = get_bitset(self);
     int seg_no;
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     uint64_t* seg_ptr = bs->data;
 
     for (seg_no = 0; seg_no < max; ++seg_no, ++seg_ptr) {
@@ -433,7 +435,7 @@ static VALUE rb_bitset_equal(VALUE self, VALUE other) {
 
     if (bs->len != other_bs->len)
        return Qfalse;
-    int max = ((bs->len-1) >> 6) + 1;
+    int max = INTS(bs);
     for(i = 0; i < max; i++) {
        if (bs->data[i] != other_bs->data[i]) {
           return Qfalse;
