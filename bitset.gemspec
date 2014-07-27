@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
   s.summary = %q{Bitset implementation.}
 
   s.add_development_dependency "rspec", "~> 2.0"
-  s.add_development_dependency "rake"
-  s.add_development_dependency "debugger"
+  s.add_development_dependency "rake", "~> 10.1"
+  s.add_development_dependency "debugger", "~> 1.6.1"
 end
 
