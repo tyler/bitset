@@ -1,4 +1,4 @@
-Bitset
+Bitset [![Build Status](https://travis-ci.org/brendon9x/bitset.svg?branch=master)](https://travis-ci.org/brendon9x/bitset)
 ======
 
 A fast Bitset implementation for Ruby. Available as the 'bitset' gem.  This is a fork of tyler/bitset which adds the
