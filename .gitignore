@@ -11,8 +11,12 @@ doc
 # bundler
 .bundle
 
-# jeweler generated
-pkg
+# Rubymine
+.idea
+
+# Compiler artifacts
+tmp
+lib/bitset.bundle
 
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
 #
