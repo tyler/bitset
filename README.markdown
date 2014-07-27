@@ -1,7 +1,14 @@
 Bitset
 ======
 
-A fast Bitset implementation for Ruby. Available as the 'bitset' gem.
+A fast Bitset implementation for Ruby. Available as the 'bitset' gem.  This is a fork of tyler/bitset which adds the
+following functionality:
+
+* Switch to Bundler's Gemspec defaults
+* Bug fix for a 64 bit cardinality bug
+* Adds a to_a method which returns on positions
+* Adds a to_binary_array which returns fixnum 1s and 0s
+* Other fixes and features are merged upstream
 
 
 Installation
@@ -14,7 +21,7 @@ Usually you want to do this:
 But if you want the latest patches or want to work on it yourself, you may want
 to do this:
 
-    git clone git://github.com/tyler/bitset.git
+    git clone git://github.com/brendon9x/bitset.git
     cd bitset
     rake build
     gem install pkg/bitset-<version>.gem
