@@ -15,6 +15,8 @@ GEM
     debugger-ruby_core_source (1.2.3)
     diff-lcs (1.2.4)
     rake (10.1.0)
+    rake-compiler (0.9.2)
+      rake
     rspec (2.14.1)
       rspec-core (~> 2.14.0)
       rspec-expectations (~> 2.14.0)
@@ -29,6 +31,7 @@ PLATFORMS
 
 DEPENDENCIES
   bitset!
-  debugger
-  rake
+  debugger (~> 1.6.1)
+  rake (~> 10.1)
+  rake-compiler (~> 0.9.2)
   rspec (~> 2.0)
