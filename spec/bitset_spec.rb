@@ -68,10 +68,22 @@ describe Bitset do
       bs[1].should == true
       bs[2].should == true
       bs[3].should == true
+      bs[4].should == false
+    end
+
+    it 'sets True for all given indexes when passed an array' do
+      bs = Bitset.new(8)
+      bs.set [1,2,3]
+
+      bs[1].should == true
+      bs[2].should == true
+      bs[3].should == true
+      bs[4].should == false
     end
   end
 
   describe :clear do
+
     it 'sets False for all given indexes' do
       bs = Bitset.new(8)
       bs.set 1,2,3
@@ -81,6 +93,17 @@ describe Bitset do
       bs[2].should == true
       bs[3].should == false
     end
+
+    it 'sets False for all given indexes' do
+      bs = Bitset.new(8)
+      bs.set [1,2,3]
+      bs.clear [1,3]
+
+      bs[1].should == false
+      bs[2].should == true
+      bs[3].should == false
+    end
+
   end
 
   describe :set? do

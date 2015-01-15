@@ -104,11 +104,21 @@ static VALUE rb_bitset_aset(VALUE self, VALUE index, VALUE value) {
 static VALUE rb_bitset_set(int argc, VALUE * argv, VALUE self) {
     int i;
     Bitset * bs = get_bitset(self);
-    for(i = 0; i < argc; i++) {
-        VALUE index = argv[i];
-        int idx = NUM2INT(index);
-        validate_index(bs, idx);
-        set_bit(bs, idx);
+
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_const_get(rb_cObject, rb_intern("Array")))) {
+        for(i = 0; i < RARRAY_LEN(argv[0]); i++) {
+            VALUE index = RARRAY_PTR(argv[0])[i];
+            int idx = NUM2INT(index);
+            validate_index(bs, idx);
+            set_bit(bs, idx);
+        }
+    } else {
+        for(i = 0; i < argc; i++) {
+            VALUE index = argv[i];
+            int idx = NUM2INT(index);
+            validate_index(bs, idx);
+            set_bit(bs, idx);
+        }
     }
     return Qtrue;
 }
@@ -116,11 +126,21 @@ static VALUE rb_bitset_set(int argc, VALUE * argv, VALUE self) {
 static VALUE rb_bitset_clear(int argc, VALUE * argv, VALUE self) {
     int i;
     Bitset * bs = get_bitset(self);
-    for(i = 0; i < argc; i++) {
-        VALUE index = argv[i];
-        int idx = NUM2INT(index);
-        validate_index(bs, idx);
-        clear_bit(bs, idx);
+
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_const_get(rb_cObject, rb_intern("Array")))) {
+        for(i = 0; i < RARRAY_LEN(argv[0]); i++) {
+            VALUE index = RARRAY_PTR(argv[0])[i];
+            int idx = NUM2INT(index);
+            validate_index(bs, idx);
+            clear_bit(bs, idx);
+        }
+    } else {
+        for(i = 0; i < argc; i++) {
+            VALUE index = argv[i];
+            int idx = NUM2INT(index);
+            validate_index(bs, idx);
+            clear_bit(bs, idx);
+        }
     }
     return Qtrue;
 }
