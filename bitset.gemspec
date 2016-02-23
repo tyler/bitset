@@ -5,13 +5,13 @@
 
 Gem::Specification.new do |s|
   s.name = %q{bitset}
-  s.version = "0.2.0"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Tyler McMullen"]
-  s.date = %q{2011-03-03}
+  s.authors = ["Tyler McMullen", "Eric Boesch"]
+  s.date = %q{2016-02-22}
   s.description = %q{A fast C-based Bitset. It supports the standard set operations as well as operations you may expect on bit arrays. (popcount, for instance)}
-  s.email = %q{tbmcmullen@gmail.com}
+  s.email = %q{ericboesch@gmail.com}
   s.extensions = ["ext/bitset/extconf.rb"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
@@ -25,9 +25,10 @@ Gem::Specification.new do |s|
     "bitset.gemspec",
     "ext/bitset/bitset.c",
     "ext/bitset/extconf.rb",
+    "lib/bitset/bitset.rb",
     "spec/bitset_spec.rb"
   ]
-  s.homepage = %q{http://github.com/tyler/bitset}
+  s.homepage = %q{http://github.com/ericboesch/bitset}
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
