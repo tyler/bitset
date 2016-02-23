@@ -119,6 +119,12 @@ support basic set and bitwise operations. So, let's look at a few of those.
     >> b.each_set
     => [1, 3, 5, 7]
 
+    # b.dup and b.clone also work
+
+    # Marshal.dump and Marshal.load are also supported. If you want to
+    # save a few bytes and don't need Marshal.load to work, you can
+    # use #pack and Bitset.unpack instead.
+
 Contributing
 ------------
 
