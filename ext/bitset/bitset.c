@@ -17,7 +17,7 @@ typedef struct {
  // 2^6=64
 
 Bitset * bitset_new() {
-    return (Bitset *) malloc(sizeof(Bitset));
+    return (Bitset *) calloc(1, sizeof(Bitset));
 }
 
 void bitset_setup(Bitset * bs, int len) {
@@ -151,10 +151,7 @@ static VALUE rb_bitset_cardinality(VALUE self) {
     int max = INTS(bs);
     int count = 0;
     for(i = 0; i < max; i++) {
-        uint64_t segment = bs->data[i];
-        if(i+1 == max)
-            segment &= ((((uint64_t) 1) << (bs->len & 0x3F)) - 1);
-        count += __builtin_popcountll(segment);
+        count += __builtin_popcountll(bs->data[i]);
     }
     return INT2NUM(count);
 }
@@ -238,11 +235,14 @@ static VALUE rb_bitset_not(VALUE self) {
     bitset_setup(new_bs, bs->len);
 
     int max = INTS(bs);
+
     int i;
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
         new_bs->data[i] = ~segment;
     }
+    if(_bit_no(bs->len) != 0)
+        new_bs->data[max-1] &= _bit_mask(bs->len) - 1;
 
     return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
 }
@@ -475,6 +475,7 @@ void Init_bitset() {
     rb_define_method(cBitset, "marshal_dump", rb_bitset_marshall_dump, 0);
     rb_define_method(cBitset, "marshal_load", rb_bitset_marshall_load, 1);
     rb_define_method(cBitset, "dup", rb_bitset_dup, 0);
+    rb_define_alias(cBitset, "clone", "dup");
     rb_define_method(cBitset, "each_set", rb_bitset_each_set, 0);
     rb_define_method(cBitset, "empty?", rb_bitset_empty_p, 0);
     rb_define_method(cBitset, "select_bits", rb_bitset_select_bits, 1);
