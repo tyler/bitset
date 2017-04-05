@@ -444,11 +444,55 @@ static VALUE rb_bitset_equal(VALUE self, VALUE other) {
     return Qtrue;
 }
 
+typedef uint64_t (*bitwise_op)(uint64_t, uint64_t);
+inline uint64_t and(uint64_t a, uint64_t b) { return a & b; }
+inline uint64_t or(uint64_t a, uint64_t b) { return a | b; }
+inline uint64_t xor(uint64_t a, uint64_t b) { return a ^ b; }
+inline uint64_t difference(uint64_t a, uint64_t b) { return a & ~b; }
+
+static VALUE mutable(VALUE self, VALUE other, bitwise_op operator) {
+    Bitset * bs = get_bitset(self);
+    Bitset * other_bs = get_bitset(other);
+
+    int max = INTS(bs);
+    int i;
+    for(i = 0; i < max; i++) {
+        uint64_t segment = bs->data[i];
+        uint64_t other_segment = other_bs->data[i];
+        bs->data[i] = operator(segment, other_segment);
+    }
+
+    return self;
+}
+
+static VALUE rb_bitset_union_mutable(VALUE self, VALUE other) {
+    return mutable(self, other, &or);
+}
+
+static VALUE rb_bitset_intersect_mutable(VALUE self, VALUE other) {
+    return mutable(self, other, &and);
+}
+
+static VALUE rb_bitset_xor_mutable(VALUE self, VALUE other) {
+    return mutable(self, other, &xor);
+}
+
+static VALUE rb_bitset_difference_mutable(VALUE self, VALUE other) {
+    return mutable(self, other, &difference);
+}
+
+static VALUE rb_bitset_reset(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    memset(bs->data, 0, (INTS(bs) * sizeof(uint64_t)) );
+    return self;
+}
+
 void Init_bitset() {
     cBitset = rb_define_class("Bitset", rb_cObject);
     rb_include_module(cBitset, rb_mEnumerable);
     rb_define_alloc_func(cBitset, rb_bitset_alloc);
     rb_define_method(cBitset, "initialize", rb_bitset_initialize, 1);
+    rb_define_method(cBitset, "reset!", rb_bitset_reset, 0);
     rb_define_method(cBitset, "size", rb_bitset_size, 0);
     rb_define_method(cBitset, "[]", rb_bitset_aref, 1);
     rb_define_method(cBitset, "[]=", rb_bitset_aset, 2);
@@ -459,13 +503,22 @@ void Init_bitset() {
     rb_define_method(cBitset, "cardinality", rb_bitset_cardinality, 0);
     rb_define_method(cBitset, "intersect", rb_bitset_intersect, 1);
     rb_define_alias(cBitset, "&", "intersect");
+    rb_define_alias(cBitset, "and", "intersect");
+    rb_define_method(cBitset, "intersect!", rb_bitset_intersect_mutable, 1);
+    rb_define_alias(cBitset, "and!", "intersect!");
     rb_define_method(cBitset, "union", rb_bitset_union, 1);
     rb_define_alias(cBitset, "|", "union");
+    rb_define_alias(cBitset, "or", "union");
+    rb_define_method(cBitset, "union!", rb_bitset_union_mutable, 1);
+    rb_define_alias(cBitset, "or!", "union!");
     rb_define_method(cBitset, "difference", rb_bitset_difference, 1);
     rb_define_alias(cBitset, "-", "difference");
+    rb_define_method(cBitset, "difference!", rb_bitset_difference_mutable, 1);
     rb_define_method(cBitset, "xor", rb_bitset_xor, 1);
     rb_define_alias(cBitset, "^", "xor");
     rb_define_alias(cBitset, "symmetric_difference", "xor");
+    rb_define_method(cBitset, "xor!", rb_bitset_xor_mutable, 1);
+    rb_define_alias(cBitset, "symmetric_difference!", "xor!");
     rb_define_method(cBitset, "not", rb_bitset_not, 0);
     rb_define_alias(cBitset, "~", "not");
     rb_define_method(cBitset, "hamming", rb_bitset_hamming, 1);
