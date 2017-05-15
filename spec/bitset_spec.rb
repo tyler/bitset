@@ -178,6 +178,9 @@ describe Bitset do
       expect(bs3.set?(1,2,4,6,7)).to be true
       expect(bs3.clear?(0,3,5)).to be true
     end
+    it 'throws if size mismatch' do
+      expect { Bitset.new(3) | Bitset.new(7) }.to raise_error(ArgumentError)
+    end
   end
 
   describe :- do
@@ -192,6 +195,9 @@ describe Bitset do
       expect(bs3.set?(7)).to be true
       expect(bs3.clear?(0,1,2,3,4,5,6)).to be true
     end
+    it 'throws if size mismatch' do
+      expect { Bitset.new(3) - Bitset.new(7) }.to raise_error(ArgumentError)
+    end
   end
 
   describe :^ do
@@ -205,6 +211,10 @@ describe Bitset do
       bs3 = bs1 ^ bs2
       expect(bs3.set?(2,6,7)).to be true
       expect(bs3.clear?(0,1,3,4,5)).to be true
+    end
+
+    it 'throws if size mismatch' do
+      expect { Bitset.new(3) ^ Bitset.new(7) }.to raise_error(ArgumentError)
     end
   end
 
@@ -312,6 +322,62 @@ describe Bitset do
       serialized = Marshal.load(Marshal.dump(bs))
       expect(serialized.set?(1, 65)).to be true
       expect(serialized.cardinality).to eq(2)
+    end
+  end
+
+  describe :union! do
+    it 'acts like |=' do
+      bs = Bitset.from_s "11011"
+      bs2 = Bitset.from_s "01111"
+      bs3 = bs.dup
+      bs.union!(bs2)
+      expect(bs).to eq(bs3 | bs2)
+    end
+
+    it 'throws if size mismatch' do
+      expect { Bitset.new(3).union!(Bitset.new(7)) }.to raise_error(ArgumentError)
+    end
+  end
+
+  describe :intersect! do
+    it 'acts like &=' do
+      bs = Bitset.from_s "11011"
+      bs2 = Bitset.from_s "01111"
+      bs3 = bs.dup
+      bs.intersect!(bs2)
+      expect(bs).to eq(bs3 & bs2)
+    end
+  end
+
+  describe :xor! do
+    it 'acts like ^=' do
+      bs = Bitset.from_s "11011"
+      bs2 = Bitset.from_s "01111"
+      bs3 = bs.dup
+      bs.xor!(bs2)
+      expect(bs).to eq(bs3 ^ bs2)
+    end
+
+    it 'throws if size mismatch' do
+      expect { Bitset.new(3).xor!(Bitset.new(7)) }.to raise_error(ArgumentError)
+    end
+  end
+
+  describe :difference! do
+    it 'acts like -=' do
+      bs = Bitset.from_s "11011"
+      bs2 = Bitset.from_s "01111"
+      bs3 = bs.dup
+      bs.difference!(bs2)
+      expect(bs).to eq(bs3 - bs2)
+    end
+  end
+
+  describe :reset! do
+    it 'causes empty? to become true' do
+      bs = Bitset.from_s "11011"
+      bs.reset!
+      expect(bs.empty?).to be true
     end
   end
 

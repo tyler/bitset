@@ -14,7 +14,7 @@ Usually you want to do this:
 But if you want the latest patches or want to work on it yourself, you may want
 to do this:
 
-    git clone git://github.com/tyler/bitset.git
+    git clone git://github.com/ericboesch/bitset.git
     cd bitset
     rake build
     gem install pkg/bitset-<version>.gem
@@ -119,7 +119,22 @@ support basic set and bitwise operations. So, let's look at a few of those.
     >> b.each_set
     => [1, 3, 5, 7]
 
-    # b.dup and b.clone also work
+    # The following methods modify a Bitset in place very quickly:
+    >> a.intersect!(b)      #  like a &= b
+    >> a.union!(b)          #  like a |= b
+    >> a.difference!(b)     #  like a -= b
+    >> a.xor!(b)            #  alias a.symmetric_difference!(b), like a ^= b
+    >> a.reset!
+
+    # Above, "like" does not mean "identical to." a |= b creates a new
+    # Bitset object. a.union!(b) changes an existing object which
+    # affects all variables that point to the same object.
+
+    # Attempting to apply bitwise binary operators or their in-place
+    # equivalents between bitsets of different sizes will raise an
+    # ArgumentError.
+
+    # b.dup and b.clone are also available.
 
     # Marshal.dump and Marshal.load are also supported. If you want to
     # save a few bytes and don't need Marshal.load to work, you can

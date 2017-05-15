@@ -32,7 +32,7 @@ void bitset_free(Bitset * bs) {
 }
 
 
-Bitset * get_bitset(VALUE obj) {
+static Bitset * get_bitset(VALUE obj) {
     Bitset * bs;
     Data_Get_Struct(obj, Bitset, bs);
     return bs;
@@ -55,7 +55,7 @@ static VALUE rb_bitset_size(VALUE self, VALUE len) {
     return INT2NUM(bs->len);
 }
 
-void raise_index_error() {
+static void raise_index_error() {
     VALUE rb_eIndexError = rb_const_get(rb_cObject, rb_intern("IndexError"));
     rb_raise(rb_eIndexError, "Index out of bounds");
 }
@@ -71,6 +71,13 @@ void raise_index_error() {
 static void validate_index(Bitset * bs, int idx) {
     if(idx < 0 || idx >= bs->len)
         raise_index_error();
+}
+
+static void verify_equal_size(Bitset * bs1, Bitset * bs2) {
+   if (bs1->len != bs2->len) {
+       VALUE rb_eArgumentError = rb_const_get(rb_cObject, rb_intern("ArgumentError"));
+       rb_raise(rb_eArgumentError, "Operands size mismatch");
+   }
 }
 
 void assign_bit(Bitset * bs, int idx, VALUE value) {
@@ -159,6 +166,7 @@ static VALUE rb_bitset_cardinality(VALUE self) {
 static VALUE rb_bitset_intersect(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
+    verify_equal_size(bs, other_bs);
 
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
@@ -177,6 +185,7 @@ static VALUE rb_bitset_intersect(VALUE self, VALUE other) {
 static VALUE rb_bitset_union(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
+    verify_equal_size(bs, other_bs);
 
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
@@ -195,6 +204,7 @@ static VALUE rb_bitset_union(VALUE self, VALUE other) {
 static VALUE rb_bitset_difference(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
+    verify_equal_size(bs, other_bs);
 
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
@@ -213,6 +223,7 @@ static VALUE rb_bitset_difference(VALUE self, VALUE other) {
 static VALUE rb_bitset_xor(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
+    verify_equal_size(bs, other_bs);
 
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
@@ -453,6 +464,7 @@ inline uint64_t difference(uint64_t a, uint64_t b) { return a & ~b; }
 static VALUE mutable(VALUE self, VALUE other, bitwise_op operator) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
+    verify_equal_size(bs, other_bs);
 
     int max = INTS(bs);
     int i;

@@ -12,11 +12,11 @@ task :default => :spec
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
   gem.name = "bitset"
-  gem.homepage = "http://github.com/tyler/bitset"
+  gem.homepage = "http://github.com/ericboesch/bitset"
   gem.license = "MIT"
   gem.summary = 'Bitset implementation.'
   gem.description = 'A fast C-based Bitset. It supports the standard set operations as well as operations you may expect on bit arrays. (popcount, for instance)'
-  gem.email = "tbmcmullen@gmail.com"
+  gem.email = "eric.boesch@nist.gov"
   gem.authors = ["Tyler McMullen"]
 end
 Jeweler::RubygemsDotOrgTasks.new
