@@ -52,6 +52,8 @@ Obviously you can also set and clear bits...
     >> bitset.clear(1, 5)
     => 00010001
 
+Arrays of ints can also be passed to #clear and #set (c/o brendon9x).
+
 The point of a bitset is to be, effectively, an array of single bits. It should
 support basic set and bitwise operations. So, let's look at a few of those.
 
@@ -89,8 +91,10 @@ support basic set and bitwise operations. So, let's look at a few of those.
     >> a.set? 6
     => true
 
-    # Return a new Bitset composed of bits #1, #3, #5, #4, and #1 again
-    >> a.select_bits [1,3,5,4,1]
+    # Return a new Bitset composed of bits #1, #3, #5, #4, and #1
+    # again. Unlike Array#values_at, this function currently only
+    # accepts an array of Fixnums as its argument.
+    >> a.values_at [1,3,5,4,1]
     => 00110
 
     # Tell whether all of the given bit numbers are clear
@@ -116,15 +120,15 @@ support basic set and bitwise operations. So, let's look at a few of those.
        7
 
     # Return an array of the positions of all set bits
-    >> b.each_set
+    >> b.each_set      # AKA b.to_a
     => [1, 3, 5, 7]
 
     # The following methods modify a Bitset in place very quickly:
     >> a.intersect!(b)      #  like a &= b
     >> a.union!(b)          #  like a |= b
     >> a.difference!(b)     #  like a -= b
-    >> a.xor!(b)            #  alias a.symmetric_difference!(b), like a ^= b
-    >> a.reset!
+    >> a.xor!(b)            #  like a ^= b
+    >> a.reset!             # Zeroes all bits
 
     # Above, "like" does not mean "identical to." a |= b creates a new
     # Bitset object. a.union!(b) changes an existing object which
@@ -133,6 +137,9 @@ support basic set and bitwise operations. So, let's look at a few of those.
     # Attempting to apply bitwise binary operators or their in-place
     # equivalents between bitsets of different sizes will raise an
     # ArgumentError.
+
+    >> b.to_binary_array
+    => [0, 1, 0, 1, 0, 1, 0, 1]
 
     # b.dup and b.clone are also available.
 
