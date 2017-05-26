@@ -105,11 +105,21 @@ static VALUE rb_bitset_aset(VALUE self, VALUE index, VALUE value) {
 static VALUE rb_bitset_set(int argc, VALUE * argv, VALUE self) {
     int i;
     Bitset * bs = get_bitset(self);
-    for(i = 0; i < argc; i++) {
-        VALUE index = argv[i];
-        int idx = NUM2INT(index);
-        validate_index(bs, idx);
-        _set_bit(bs, idx);
+
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_const_get(rb_cObject, rb_intern("Array")))) {
+        for(i = 0; i < RARRAY_LEN(argv[0]); i++) {
+            VALUE index = RARRAY_PTR(argv[0])[i];
+            int idx = NUM2INT(index);
+            validate_index(bs, idx);
+            _set_bit(bs, idx);
+        }
+    } else {
+        for(i = 0; i < argc; i++) {
+            VALUE index = argv[i];
+            int idx = NUM2INT(index);
+            validate_index(bs, idx);
+            _set_bit(bs, idx);
+        }
     }
     return Qtrue;
 }
@@ -117,11 +127,21 @@ static VALUE rb_bitset_set(int argc, VALUE * argv, VALUE self) {
 static VALUE rb_bitset_clear(int argc, VALUE * argv, VALUE self) {
     int i;
     Bitset * bs = get_bitset(self);
-    for(i = 0; i < argc; i++) {
-        VALUE index = argv[i];
-        int idx = NUM2INT(index);
-        validate_index(bs, idx);
-        _clear_bit(bs, idx);
+
+    if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_const_get(rb_cObject, rb_intern("Array")))) {
+        for(i = 0; i < RARRAY_LEN(argv[0]); i++) {
+            VALUE index = RARRAY_PTR(argv[0])[i];
+            int idx = NUM2INT(index);
+            validate_index(bs, idx);
+            _clear_bit(bs, idx);
+        }
+    } else {
+        for(i = 0; i < argc; i++) {
+            VALUE index = argv[i];
+            int idx = NUM2INT(index);
+            validate_index(bs, idx);
+            _clear_bit(bs, idx);
+        }
     }
     return Qtrue;
 }
@@ -340,6 +360,18 @@ static VALUE rb_bitset_marshall_load(VALUE self, VALUE hash) {
     return Qnil;
 }
 
+static VALUE rb_bitset_to_binary_array(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    int i;
+
+    VALUE array = rb_ary_new2(bs->len / 2);
+    for(i = 0; i < bs->len; i++) {
+        rb_ary_push(array, INT2NUM(get_bit(bs, i) > 0 ? 1 : 0));
+    }
+
+    return array;
+}
+
 static VALUE rb_bitset_dup(VALUE self) {
     Bitset * bs = get_bitset(self);
 
@@ -404,7 +436,7 @@ static VALUE rb_bitset_empty_p(VALUE self) {
     return Qtrue;
 }
 
-static VALUE rb_bitset_select_bits(VALUE self, VALUE index_array) {
+static VALUE rb_bitset_values_at(VALUE self, VALUE index_array) {
     int i;
     Bitset * bs = get_bitset(self);
     struct RArray *arr = RARRAY(index_array);
@@ -539,11 +571,16 @@ void Init_bitset() {
     rb_define_singleton_method(cBitset, "from_s", rb_bitset_from_s, 1);
     rb_define_method(cBitset, "marshal_dump", rb_bitset_marshall_dump, 0);
     rb_define_method(cBitset, "marshal_load", rb_bitset_marshall_load, 1);
+    rb_define_method(cBitset, "to_binary_array", rb_bitset_to_binary_array, 0);
     rb_define_method(cBitset, "dup", rb_bitset_dup, 0);
     rb_define_alias(cBitset, "clone", "dup");
     rb_define_method(cBitset, "each_set", rb_bitset_each_set, 0);
+    rb_define_alias(cBitset, "to_a", "each_set");
+    /* Arguably to_a should not be an alias because it's weird for
+       to_a to accept a block. */
     rb_define_method(cBitset, "empty?", rb_bitset_empty_p, 0);
-    rb_define_method(cBitset, "select_bits", rb_bitset_select_bits, 1);
+    rb_define_method(cBitset, "values_at", rb_bitset_values_at, 1);
+    rb_define_alias(cBitset, "select_bits", "values_at");
     rb_define_method(cBitset, "reverse", rb_bitset_reverse, 0);
     rb_define_method(cBitset, "==", rb_bitset_equal, 1);
 }
