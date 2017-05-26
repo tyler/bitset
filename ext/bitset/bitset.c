@@ -186,13 +186,14 @@ static VALUE rb_bitset_cardinality(VALUE self) {
 static VALUE rb_bitset_intersect(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
-    verify_equal_size(bs, other_bs);
-
-    Bitset * new_bs = bitset_new();
-    bitset_setup(new_bs, bs->len);
-
+    Bitset * new_bs;
     int max = INTS(bs);
     int i;
+
+    verify_equal_size(bs, other_bs);
+    new_bs = bitset_new();
+    bitset_setup(new_bs, bs->len);
+
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
         uint64_t other_segment = other_bs->data[i];
@@ -205,13 +206,14 @@ static VALUE rb_bitset_intersect(VALUE self, VALUE other) {
 static VALUE rb_bitset_union(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
-    verify_equal_size(bs, other_bs);
-
-    Bitset * new_bs = bitset_new();
-    bitset_setup(new_bs, bs->len);
-
+    Bitset * new_bs;
     int max = INTS(bs);
     int i;
+
+    verify_equal_size(bs, other_bs);
+    new_bs = bitset_new();
+    bitset_setup(new_bs, bs->len);
+
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
         uint64_t other_segment = other_bs->data[i];
@@ -224,13 +226,14 @@ static VALUE rb_bitset_union(VALUE self, VALUE other) {
 static VALUE rb_bitset_difference(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
-    verify_equal_size(bs, other_bs);
-
-    Bitset * new_bs = bitset_new();
-    bitset_setup(new_bs, bs->len);
-
+    Bitset * new_bs;
     int max = INTS(bs);
     int i;
+
+    verify_equal_size(bs, other_bs);
+    new_bs = bitset_new();
+    bitset_setup(new_bs, bs->len);
+
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
         uint64_t other_segment = other_bs->data[i];
@@ -243,13 +246,14 @@ static VALUE rb_bitset_difference(VALUE self, VALUE other) {
 static VALUE rb_bitset_xor(VALUE self, VALUE other) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
-    verify_equal_size(bs, other_bs);
-
-    Bitset * new_bs = bitset_new();
-    bitset_setup(new_bs, bs->len);
-
+    Bitset * new_bs;
     int max = INTS(bs);
     int i;
+
+    verify_equal_size(bs, other_bs);
+    new_bs = bitset_new();
+    bitset_setup(new_bs, bs->len);
+
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
         uint64_t other_segment = other_bs->data[i];
@@ -261,13 +265,11 @@ static VALUE rb_bitset_xor(VALUE self, VALUE other) {
 
 static VALUE rb_bitset_not(VALUE self) {
     Bitset * bs = get_bitset(self);
-
     Bitset * new_bs = bitset_new();
-    bitset_setup(new_bs, bs->len);
-
     int max = INTS(bs);
-
     int i;
+
+    bitset_setup(new_bs, bs->len);
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
         new_bs->data[i] = ~segment;
@@ -294,11 +296,11 @@ static VALUE rb_bitset_to_s(VALUE self) {
 static VALUE rb_bitset_from_s(VALUE self, VALUE s) {
     int length = RSTRING_LEN(s);
     char* data = StringValuePtr(s);
-
     Bitset * new_bs = bitset_new();
+    int i;
+
     bitset_setup(new_bs, length);
 
-    int i;
     for (i = 0; i < length; i++) {
         if (data[i] == '1') {
             _set_bit(new_bs, i);
@@ -338,7 +340,7 @@ static VALUE rb_bitset_each(VALUE self) {
 static VALUE rb_bitset_marshall_dump(VALUE self) {
     Bitset * bs = get_bitset(self);
     VALUE hash = rb_hash_new();
-    VALUE data = rb_str_new(bs->data, BYTES(bs));
+    VALUE data = rb_str_new((const char *) bs->data, BYTES(bs));
 
     rb_hash_aset(hash, ID2SYM(rb_intern("len")), UINT2NUM(bs->len));
     rb_hash_aset(hash, ID2SYM(rb_intern("data")), data);
@@ -366,7 +368,7 @@ static VALUE rb_bitset_to_binary_array(VALUE self) {
 
     VALUE array = rb_ary_new2(bs->len / 2);
     for(i = 0; i < bs->len; i++) {
-        rb_ary_push(array, INT2NUM(get_bit(bs, i) > 0 ? 1 : 0));
+        rb_ary_push(array, INT2NUM(_get_bit(bs, i) > 0 ? 1 : 0));
     }
 
     return array;
@@ -374,11 +376,11 @@ static VALUE rb_bitset_to_binary_array(VALUE self) {
 
 static VALUE rb_bitset_dup(VALUE self) {
     Bitset * bs = get_bitset(self);
+    int max = INTS(bs);
 
     Bitset * new_bs = bitset_new();
     bitset_setup(new_bs, bs->len);
 
-    int max = INTS(bs);
     memcpy(new_bs->data, bs->data, max * sizeof(bs->data[0]));
     return Data_Wrap_Struct(cBitset, 0, bitset_free, new_bs);
 }
@@ -439,7 +441,6 @@ static VALUE rb_bitset_empty_p(VALUE self) {
 static VALUE rb_bitset_values_at(VALUE self, VALUE index_array) {
     int i;
     Bitset * bs = get_bitset(self);
-    struct RArray *arr = RARRAY(index_array);
     int blen = bs->len;
     int alen = RARRAY_LEN(index_array);
     VALUE *ptr = RARRAY_PTR(index_array);
@@ -475,10 +476,10 @@ static VALUE rb_bitset_equal(VALUE self, VALUE other) {
     int i;
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
+    int max = INTS(bs);
 
     if (bs->len != other_bs->len)
        return Qfalse;
-    int max = INTS(bs);
     for(i = 0; i < max; i++) {
        if (bs->data[i] != other_bs->data[i]) {
           return Qfalse;
@@ -496,10 +497,10 @@ inline uint64_t difference(uint64_t a, uint64_t b) { return a & ~b; }
 static VALUE mutable(VALUE self, VALUE other, bitwise_op operator) {
     Bitset * bs = get_bitset(self);
     Bitset * other_bs = get_bitset(other);
-    verify_equal_size(bs, other_bs);
-
     int max = INTS(bs);
     int i;
+    verify_equal_size(bs, other_bs);
+
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
         uint64_t other_segment = other_bs->data[i];
@@ -576,8 +577,8 @@ void Init_bitset() {
     rb_define_alias(cBitset, "clone", "dup");
     rb_define_method(cBitset, "each_set", rb_bitset_each_set, 0);
     rb_define_alias(cBitset, "to_a", "each_set");
-    /* Arguably to_a should not be an alias because it's weird for
-       to_a to accept a block. */
+    /* #each_set allows an optional block, and #to_a normally doesn't.
+        But an alias is simpler than having two different functions. */
     rb_define_method(cBitset, "empty?", rb_bitset_empty_p, 0);
     rb_define_method(cBitset, "values_at", rb_bitset_values_at, 1);
     rb_define_alias(cBitset, "select_bits", "values_at");
