@@ -143,7 +143,7 @@ describe Bitset do
     it '... even for large numbers of bits' do
       bs = Bitset.new(10_000)
       size = 5000
-      bs.set(*(0...size).to_a)
+      bs.set((0...size).to_a)
       expect(bs.cardinality).to eq(size)
 
       bs = Bitset.from_s "01001101000000000000000000000011000010100100000000000000010000101000000000000000100000000100000000000010100100010000000010000100000100000001001000110000000000100010000000010100000000000000110000000000000000000000000100000000100010010000000000000000000001000000000000000000000000000001000000000000000000000000000100000000010010000000000000000000100100000000000000001000000010000001000000000000001000001100010001000000000000001000001000001000000000000001100010000010010001000000010000100000000000110000"
@@ -259,7 +259,7 @@ describe Bitset do
     it 'iterates over each set bit in the Bitset' do
       bs = Bitset.new(4)
       sets = [0,3]
-      bs.set(*sets)
+      bs.set sets
       sets2 = []
       bs.each_set { |bit| sets2 << bit }
       expect(sets2).to eq(sets)
@@ -378,6 +378,35 @@ describe Bitset do
       bs = Bitset.from_s "11011"
       bs.reset!
       expect(bs.empty?).to be true
+    end
+  end
+
+  describe :to_a do
+    it "can convert to an array of set positions" do
+      bs = Bitset.new(68)
+      bs.set 1, 64, 65
+
+      expect(bs.to_a).to eq([1, 64, 65])
+    end
+  end
+
+  describe :to_binary_array do
+    it "can convert to an array of 1s and 0s" do
+      bs = Bitset.new(68)
+      bs.set 1, 64, 65
+
+      expect(bs.to_binary_array.values_at(1, 64, 65, 66)).to eq([1, 1, 1, 0])
+    end
+  end
+
+  describe :pack do
+    it 'round trips with #unpack' do
+      %w{110 00010 101010011101011100000110011010110011010001}.each do |bits|
+        bitset = Bitset.from_s bits
+        packed = bitset.pack
+        unpacked = Bitset.unpack(packed)
+        expect(bitset).to eq(unpacked)
+      end
     end
   end
 
