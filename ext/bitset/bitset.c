@@ -1,4 +1,5 @@
 #include "ruby.h"
+#include "builtin.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -178,7 +179,7 @@ static VALUE rb_bitset_cardinality(VALUE self) {
     int max = INTS(bs);
     int count = 0;
     for(i = 0; i < max; i++) {
-        count += __builtin_popcountll(bs->data[i]);
+        count += psnip_builtin_popcount64(bs->data[i]);
     }
     return INT2NUM(count);
 }
@@ -320,7 +321,7 @@ static VALUE rb_bitset_hamming(VALUE self, VALUE other) {
     for(i = 0; i < max; i++) {
         uint64_t segment = bs->data[i];
         uint64_t other_segment = other_bs->data[i];
-        count += __builtin_popcountll(segment ^ other_segment);
+        count += psnip_builtin_popcount64(segment ^ other_segment);
     }
 
     return INT2NUM(count);
@@ -406,7 +407,7 @@ static VALUE rb_bitset_each_set(VALUE self) {
           VALUE v;
 
           if (!(segment & 1)) {
-             int shift = __builtin_ctzll(segment);
+             int shift = psnip_builtin_ctz64(segment);
              bit_position += shift;
              segment >>= shift;
           }
