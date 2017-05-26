@@ -1,2 +1,2 @@
 require 'mkmf'
-create_makefile 'bitset'
+create_makefile 'bitset/bitset'
