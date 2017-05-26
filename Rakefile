@@ -15,9 +15,11 @@ Jeweler::Tasks.new do |gem|
   gem.homepage = "http://github.com/ericboesch/bitset"
   gem.license = "MIT"
   gem.summary = 'Bitset implementation.'
-  gem.description = 'A fast C-based Bitset. It supports the standard set operations as well as operations you may expect on bit arrays. (popcount, for instance)'
+  gem.description = 'A fast C-based Bitset. It supports the standard set operations as well as operations you may expect on bit arrays,such as popcount.'
   gem.email = "eric.boesch@nist.gov"
   gem.authors = ["Tyler McMullen"]
+  # Other significant contributions from Eric Boesch, Gabriel Formica, and Brendon McLean.
+
 end
 Jeweler::RubygemsDotOrgTasks.new
 
