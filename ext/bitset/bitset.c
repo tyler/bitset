@@ -2,8 +2,10 @@
 #include "builtin.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <limits.h>
 
 VALUE cBitset;
 
@@ -173,15 +175,19 @@ static VALUE rb_bitset_set_p(int argc, VALUE * argv, VALUE self) {
     return Qtrue;
 }
 
-static VALUE rb_bitset_cardinality(VALUE self) {
-    Bitset * bs = get_bitset(self);
+static int cardinality(Bitset * bs) {
     int i;
     int max = INTS(bs);
     int count = 0;
     for(i = 0; i < max; i++) {
         count += psnip_builtin_popcount64(bs->data[i]);
     }
-    return INT2NUM(count);
+    return count;
+}
+
+static VALUE rb_bitset_cardinality(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    return INT2NUM(cardinality(bs));
 }
 
 static VALUE rb_bitset_intersect(VALUE self, VALUE other) {
@@ -388,21 +394,51 @@ static VALUE rb_bitset_dup(VALUE self) {
 
 /* Yield the bit numbers of each set bit in sequence to a block. If
    there is no block, return an array of those numbers. */
-static VALUE rb_bitset_each_set(VALUE self) {
+static VALUE rb_bitset_each_set(int argc, VALUE * argv,  VALUE self) {
     Bitset * bs = get_bitset(self);
     int seg_no;
     int max = INTS(bs);
     uint64_t* seg_ptr = bs->data;
     int block_p = rb_block_given_p();
     VALUE ary = Qnil;
+    int set_bit_no = -1;
 
-    if (!block_p) {
+    /* If there is one argument, it is an index into the notional
+       output array, and return an int. If there are two arguments,
+       return up to <n> arguments where is the second argument. */
+    int min_set_bit_no = (argc > 0) ? NUM2INT(argv[0]) : 0;
+    int max_set_bit_no;
+
+    if (argc > 2) {
+       VALUE error = rb_const_get(rb_cObject, rb_intern("ArgumentError"));
+       rb_raise(error, "wrong number of arguments (given %d, expected 0..2)",
+                argc);
+    }
+
+    if (min_set_bit_no < 0) {
+        /* Convert negative numbers into offsets from the end of the array. */
+        min_set_bit_no = cardinality(bs) + min_set_bit_no;
+    }
+
+    max_set_bit_no = (argc == 0)
+        ? INT_MAX
+        : (argc == 1)
+        ? (min_set_bit_no + 1)
+        : (min_set_bit_no + NUM2INT(argv[1]));
+
+    if (min_set_bit_no < 0 || max_set_bit_no < min_set_bit_no)
+        return Qnil;
+
+    if (argc != 1 && !block_p) {
        ary = rb_ary_new();
     }
+    if (min_set_bit_no < 0 || max_set_bit_no < min_set_bit_no)
+        return Qnil;
 
     for (seg_no = 0; seg_no < max; ++seg_no, ++seg_ptr) {
        uint64_t segment = *seg_ptr;
        int bit_position = 0;
+       bool finished = false;
        while (segment) {
           VALUE v;
 
@@ -412,13 +448,26 @@ static VALUE rb_bitset_each_set(VALUE self) {
              segment >>= shift;
           }
           v = INT2NUM(_seg_no_to_bit_no(seg_no) + bit_position);
+          ++bit_position;
+          segment >>= 1;
+          ++set_bit_no;
+          if (set_bit_no < min_set_bit_no) {
+             continue;
+          }
+          if (set_bit_no >= max_set_bit_no) {
+              finished = true;
+             break;
+          }
           if (block_p) {
              rb_yield(v);
+          } else if (argc == 1) {
+              return v;
           } else {
              rb_ary_push(ary, v);
           }
-          ++bit_position;
-          segment >>= 1;
+       }
+       if (finished) {
+           break;
        }
     }
 
@@ -576,7 +625,7 @@ void Init_bitset() {
     rb_define_method(cBitset, "to_binary_array", rb_bitset_to_binary_array, 0);
     rb_define_method(cBitset, "dup", rb_bitset_dup, 0);
     rb_define_alias(cBitset, "clone", "dup");
-    rb_define_method(cBitset, "each_set", rb_bitset_each_set, 0);
+    rb_define_method(cBitset, "each_set", rb_bitset_each_set, -1);
     rb_define_alias(cBitset, "to_a", "each_set");
     /* #each_set allows an optional block, and #to_a normally doesn't.
         But an alias is simpler than having two different functions. */

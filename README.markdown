@@ -39,16 +39,16 @@ Obviously you can also set and clear bits...
 
     >> bitset = Bitset.new(8)
     => 00000000
-    
+
     >> bitset[3] = true
     => 00010000
-    
+
     >> bitset[3] = false
     => 00000000
-    
+
     >> bitset.set(1, 3, 5, 7)
     => 01010101
-    
+
     >> bitset.clear(1, 5)
     => 00010001
 
@@ -59,31 +59,31 @@ support basic set and bitwise operations. So, let's look at a few of those.
 
     >> a = Bitset.from_s('00001111')
     => 00001111
-    
+
     >> b = Bitset.from_s('01010101')
     => 01010101
-    
+
     >> a & b
     => 00000101
-    
+
     >> a | b
     => 01011111
-    
+
     >> b - a
     => 01010000
-    
+
     >> a ^ b
     => 01011010
-    
+
     >> ~a
     => 11110000
-    
+
     >> a.hamming(b)
     => 4
-    
+
     >> a.cardinality
     => 4
-    
+
     >> a.reverse
     => 11110000
 
@@ -122,6 +122,15 @@ support basic set and bitwise operations. So, let's look at a few of those.
     # Return an array of the positions of all set bits
     >> b.each_set      # AKA b.to_a
     => [1, 3, 5, 7]
+
+    # b.each_set(index) == b.each_set[index], but faster.
+    >> b.each_set(-3) # Negative index wraps around.
+    => 3
+
+    # b.each_set(index, len) == b.each_set[index, len], but faster.
+    >> b.each_set(2,2) # Block is also allowed
+    => [5,7]
+
 
     # The following methods modify a Bitset in place very quickly:
     >> a.intersect!(b)      #  like a &= b

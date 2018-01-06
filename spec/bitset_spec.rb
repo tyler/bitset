@@ -271,6 +271,13 @@ describe Bitset do
       bs.set(*sets)
       expect(bs.each_set).to eq(sets)
     end
+
+    it 'behaves properly with arguments' do
+      bs = Bitset.from_s "110110011"
+      expect { bs.each_set 1, 2, 3 }.to raise_error(ArgumentError)
+      expect(bs.each_set 2).to eq(3)
+      expect(bs.each_set -3, 2).to eq([4,7])
+    end
   end
 
   describe :empty? do
