@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Tyler McMullen".freeze]
-  s.date = "2018-01-11"
+  s.date = "2018-05-01"
   s.description = "A fast C-based Bitset. It supports the standard set operations as well as operations you may expect on bit arrays,such as popcount.".freeze
   s.email = "eric.boesch@nist.gov".freeze
   s.extensions = ["ext/bitset/extconf.rb".freeze]
