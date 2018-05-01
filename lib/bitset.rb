@@ -19,7 +19,7 @@ class Bitset
     "#{self.class.name}:#{to_s}"
   end
 
-  # @param [String] Output from {#pack}
+  # @param [String] str Output from {#pack}
   #
   # @return [Bitset] A duplicate of the input to {#pack}
   def self.unpack str
