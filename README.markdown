@@ -35,6 +35,17 @@ We can also create a bitset based on a string of ones and zeros.
     >> Bitset.from_s('00010001')
     => 00010001
 
+or from an array. Falsey values (false and nil) are converted to
+zeroes; all other values, including 0 and "", are converted to ones.
+
+    >> Bitset.new [false, nil, 3, 0]
+    => 0011
+
+To input an array of ones and zeroes:
+
+    >> Bitset.new([0,1,1,0].map(&:positive?))
+    => 0110
+
 Obviously you can also set and clear bits...
 
     >> bitset = Bitset.new(8)
@@ -52,7 +63,7 @@ Obviously you can also set and clear bits...
     >> bitset.clear(1, 5)
     => 00010001
 
-Arrays of ints can also be passed to #clear and #set (c/o brendon9x).
+Arrays of Integers can also be passed to #clear and #set (c/o brendon9x).
 
 The point of a bitset is to be, effectively, an array of single bits. It should
 support basic set and bitwise operations. So, let's look at a few of those.

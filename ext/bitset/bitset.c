@@ -19,6 +19,14 @@ typedef struct {
 #define INTS(_bs) (((_bs)->len+63) >> 6)
  // 2^6=64
 
+#define _bit_no(bit) ((bit) & 0x3f)
+#define _bit_segment(bit) ((bit) >> 6)
+#define _bit_mask(bit) (((uint64_t) 1) << _bit_no(bit))
+#define _seg_no_to_bit_no(seg_no) ((seg_no) << 6)
+#define _get_bit(bs, idx) ((bs)->data[_bit_segment(idx)] & _bit_mask(idx))
+#define _set_bit(bs, idx) ((bs)->data[_bit_segment(idx)] |= _bit_mask(idx))
+#define _clear_bit(bs, idx) ((bs)->data[_bit_segment(idx)] &= ~_bit_mask(idx))
+
 Bitset * bitset_new() {
     return (Bitset *) calloc(1, sizeof(Bitset));
 }
@@ -47,9 +55,23 @@ static VALUE rb_bitset_alloc(VALUE klass) {
     return obj;
 }
 
-static VALUE rb_bitset_initialize(VALUE self, VALUE len) {
+static VALUE rb_bitset_initialize(VALUE self, VALUE ary) {
     Bitset * bs = get_bitset(self);
-    bitset_setup(bs, NUM2INT(len));
+    if (RB_TYPE_P(ary, T_ARRAY)) {
+        int i;
+        int len = (int) RARRAY_LEN(ary);
+        bitset_setup(bs, len);
+        for (i = 0; i < len; ++i) {
+            // This could be more efficient, but if you're converting
+            // from a Ruby array of bits, you're not looking
+            // at blazing speed anyhow.
+            if (RTEST(rb_ary_entry(ary, i))) {
+                _set_bit(bs, i);
+            }
+        }
+    } else {
+        bitset_setup(bs, NUM2INT(ary));
+    }
     return self;
 }
 
@@ -62,14 +84,6 @@ static void raise_index_error() {
     VALUE rb_eIndexError = rb_const_get(rb_cObject, rb_intern("IndexError"));
     rb_raise(rb_eIndexError, "Index out of bounds");
 }
-
-#define _bit_no(bit) ((bit) & 0x3f)
-#define _bit_segment(bit) ((bit) >> 6)
-#define _bit_mask(bit) (((uint64_t) 1) << _bit_no(bit))
-#define _seg_no_to_bit_no(seg_no) ((seg_no) << 6)
-#define _get_bit(bs, idx) ((bs)->data[_bit_segment(idx)] & _bit_mask(idx))
-#define _set_bit(bs, idx) ((bs)->data[_bit_segment(idx)] |= _bit_mask(idx))
-#define _clear_bit(bs, idx) ((bs)->data[_bit_segment(idx)] &= ~_bit_mask(idx))
 
 static void validate_index(Bitset * bs, int idx) {
     if(idx < 0 || idx >= bs->len)

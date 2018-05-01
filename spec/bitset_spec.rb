@@ -1,8 +1,12 @@
 require 'bitset'
 
 describe Bitset do
-  it 'can be initialized' do
+  it 'can be initialized by size' do
     Bitset.new(64)
+  end
+
+  it 'can be initialized by array' do
+    Bitset.new([false, nil, 3, 0]).to_s == "0011"
   end
 
   it 'raises ArgumentError wihen initialized with no argument' do
@@ -110,13 +114,13 @@ describe Bitset do
       expect(bs.clear?(0,2,3,6)).to be true
     end
 
-    it 'returns works with the full range of 64 bit values'  do
+    it 'works with the full range of 64 bit values'  do
       bs = Bitset.new(68)
       bs.set 0, 2, 66
       expect(bs.clear?(32, 33, 34)).to be true
     end
 
-    it 'returns False if not all bits indexed are clear' do
+    it 'returns false if not all bits indexed are clear' do
       bs = Bitset.new(8)
       bs.set 1, 4
       expect(bs.clear?(1,2,6)).to be false
@@ -416,5 +420,10 @@ describe Bitset do
       end
     end
   end
-
+  
+  describe :inspect do
+    it "returns expected output" do
+      expect(Bitset.from_s("1011").inspect).to eq("Bitset:1011")
+    end
+  end
 end
