@@ -310,7 +310,37 @@ static VALUE rb_bitset_each(VALUE self) {
     return self;
 }
 
-static VALUE rb_bitset_marshall_dump(VALUE self) {
+static VALUE rb_bitset_each_with_index(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    int i;
+
+    for(i = 0; i < bs->len; i++) {
+        rb_yield_values(2, get_bit(bs, i) > 0 ? Qtrue : Qfalse, INT2NUM(i));
+    }
+
+    return self;
+}
+
+static VALUE rb_bitset_each_set_index(VALUE self) {
+    Bitset * bs = get_bitset(self);
+    int i, n = INTS(bs);
+
+    for(i = 0; i < n; i++) {
+        uint64_t bits = bs->data[i];
+        int j = 0;
+        while (bits) {
+            if (bits & 1) {
+                rb_yield(INT2NUM((i << 6) + j));
+            }
+            bits >>= 1;
+            j++;
+        }
+    }
+
+    return self;
+}
+
+static VALUE rb_bitset_marshal_dump(VALUE self) {
     Bitset * bs = get_bitset(self);
     VALUE hash = rb_hash_new();
     VALUE data = rb_str_new(bs->data, BYTES(bs));
@@ -321,7 +351,7 @@ static VALUE rb_bitset_marshall_dump(VALUE self) {
     return hash;
 }
 
-static VALUE rb_bitset_marshall_load(VALUE self, VALUE hash) {
+static VALUE rb_bitset_marshal_load(VALUE self, VALUE hash) {
     Bitset * bs = get_bitset(self);
     int len = NUM2INT(rb_hash_aref(hash, ID2SYM(rb_intern("len"))));
 
@@ -361,8 +391,10 @@ void Init_bitset() {
     rb_define_alias(cBitset, "~", "not");
     rb_define_method(cBitset, "hamming", rb_bitset_hamming, 1);
     rb_define_method(cBitset, "each", rb_bitset_each, 0);
+    rb_define_method(cBitset, "each_with_index", rb_bitset_each_with_index, 0);
+    rb_define_method(cBitset, "each_set_index", rb_bitset_each_set_index, 0);
     rb_define_method(cBitset, "to_s", rb_bitset_to_s, 0);
     rb_define_singleton_method(cBitset, "from_s", rb_bitset_from_s, 1);
-    rb_define_method(cBitset, "marshal_dump", rb_bitset_marshall_dump, 0);
-    rb_define_method(cBitset, "marshal_load", rb_bitset_marshall_load, 1);
+    rb_define_method(cBitset, "marshal_dump", rb_bitset_marshal_dump, 0);
+    rb_define_method(cBitset, "marshal_load", rb_bitset_marshal_load, 1);
 }

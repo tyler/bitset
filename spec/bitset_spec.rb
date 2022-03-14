@@ -235,6 +235,34 @@ describe Bitset do
     end
   end
 
+  describe :each_with_index do
+    it 'iterates over the bits in the Bitset and provides index' do
+      bs = Bitset.new(4)
+      bs.set 0, 2
+
+      i = 0
+      bs.each_with_index do |bit, idx|
+        bit.should == bs[i]
+        idx.should == i
+        i += 1
+      end
+      i.should == 4
+    end
+  end
+
+  describe :each_set_index do
+    it 'iterates over the set bits in the Bitset by index' do
+      bs = Bitset.new(100)
+      bs.set 0, 2, 8, 13, 17, 55, 88, 98
+
+      a = []
+      bs.each_set_index do |idx|
+        a << idx
+      end
+      a.should == [0, 2, 8, 13, 17, 55, 88, 98]
+    end
+  end
+
   describe :to_s do
     it 'correctly prints out a binary string' do
       bs = Bitset.new(4)
